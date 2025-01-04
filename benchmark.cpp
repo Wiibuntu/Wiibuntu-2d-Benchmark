@@ -1,117 +1,93 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
-#include <algorithm>
-#include <cmath>
-#include <random>
-#include <numeric>
+#include <string>
+#include <SFML/Graphics.hpp>
 
-using namespace std;
-using namespace std::chrono;
+// Structure to hold benchmark result
+struct BenchmarkResult {
+    std::string stage_name;
+    double duration_ms;
+};
 
-// Scoring system
-int score = 0;
+// Benchmark class
+class BenchmarkTool {
+public:
+    BenchmarkTool() : window(sf::VideoMode(800, 600), "2D Benchmark Tool") {}
 
-// Benchmark for Sorting Algorithms
-void sortingBenchmark() {
-    vector<int> data(100000);
-    iota(data.begin(), data.end(), 1);
-    shuffle(data.begin(), data.end(), mt19937(random_device()()));
+    void run() {
+        std::cout << "Starting 2D Graphics Benchmark..." << std::endl;
+        
+        // Run benchmark stages
+        runStage("Rectangle Rendering", &BenchmarkTool::benchmarkRectangles);
+        runStage("Circle Rendering", &BenchmarkTool::benchmarkCircles);
+        runStage("Line Rendering", &BenchmarkTool::benchmarkLines);
 
-    auto start = high_resolution_clock::now();
-    sort(data.begin(), data.end());
-    auto stop = high_resolution_clock::now();
+        // Display results
+        displayResults();
+    }
 
-    int duration = duration_cast<milliseconds>(stop - start).count();
-    cout << "Sorting Benchmark: " << duration << " ms" << endl;
-    score += max(1000 - duration, 0);
-}
+private:
+    sf::RenderWindow window;
+    std::vector<BenchmarkResult> results;
 
-// Benchmark for Matrix Multiplication
-void matrixMultiplicationBenchmark() {
-    const int N = 300;
-    vector<vector<double>> A(N, vector<double>(N, 1.0));
-    vector<vector<double>> B(N, vector<double>(N, 2.0));
-    vector<vector<double>> C(N, vector<double>(N, 0.0));
+    void runStage(const std::string& name, void (BenchmarkTool::*benchmarkFunc)()) {
+        auto start = std::chrono::high_resolution_clock::now();
+        (this->*benchmarkFunc)();
+        auto end = std::chrono::high_resolution_clock::now();
 
-    auto start = high_resolution_clock::now();
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
-            for (int k = 0; k < N; ++k) {
-                C[i][j] += A[i][k] * B[k][j];
-            }
+        double duration = std::chrono::duration<double, std::milli>(end - start).count();
+        results.push_back({name, duration});
+        std::cout << name << " completed in " << duration << " ms." << std::endl;
+    }
+
+    void benchmarkRectangles() {
+        for (int i = 0; i < 10000; ++i) {
+            sf::RectangleShape rectangle(sf::Vector2f(50, 50));
+            rectangle.setPosition(rand() % 800, rand() % 600);
+            rectangle.setFillColor(sf::Color::Red);
+            window.clear();
+            window.draw(rectangle);
+            window.display();
         }
     }
-    auto stop = high_resolution_clock::now();
 
-    int duration = duration_cast<milliseconds>(stop - start).count();
-    cout << "Matrix Multiplication Benchmark: " << duration << " ms" << endl;
-    score += max(2000 - duration, 0);
-}
-
-// Benchmark for Trigonometric Calculations
-void trigonometricBenchmark() {
-    vector<double> angles(1000000);
-    iota(angles.begin(), angles.end(), 0.0);
-
-    auto start = high_resolution_clock::now();
-    for (auto &angle : angles) {
-        angle = sin(angle) + cos(angle) + tan(angle);
-    }
-    auto stop = high_resolution_clock::now();
-
-    int duration = duration_cast<milliseconds>(stop - start).count();
-    cout << "Trigonometric Benchmark: " << duration << " ms" << endl;
-    score += max(1500 - duration, 0);
-}
-
-// Benchmark for Random Number Generation
-void randomNumberBenchmark() {
-    vector<int> numbers(1000000);
-    mt19937 rng(random_device{}());
-    uniform_int_distribution<int> dist(1, 1000000);
-
-    auto start = high_resolution_clock::now();
-    for (auto &num : numbers) {
-        num = dist(rng);
-    }
-    auto stop = high_resolution_clock::now();
-
-    int duration = duration_cast<milliseconds>(stop - start).count();
-    cout << "Random Number Generation Benchmark: " << duration << " ms" << endl;
-    score += max(1200 - duration, 0);
-}
-
-// Benchmark for Prime Number Generation
-void primeNumberBenchmark() {
-    const int LIMIT = 1000000;
-    vector<bool> isPrime(LIMIT + 1, true);
-    isPrime[0] = isPrime[1] = false;
-
-    auto start = high_resolution_clock::now();
-    for (int p = 2; p * p <= LIMIT; ++p) {
-        if (isPrime[p]) {
-            for (int i = p * p; i <= LIMIT; i += p) {
-                isPrime[i] = false;
-            }
+    void benchmarkCircles() {
+        for (int i = 0; i < 10000; ++i) {
+            sf::CircleShape circle(25);
+            circle.setPosition(rand() % 800, rand() % 600);
+            circle.setFillColor(sf::Color::Green);
+            window.clear();
+            window.draw(circle);
+            window.display();
         }
     }
-    auto stop = high_resolution_clock::now();
 
-    int duration = duration_cast<milliseconds>(stop - start).count();
-    cout << "Prime Number Generation Benchmark: " << duration << " ms" << endl;
-    score += max(1800 - duration, 0);
-}
+    void benchmarkLines() {
+        for (int i = 0; i < 10000; ++i) {
+            sf::Vertex line[] = {
+                sf::Vertex(sf::Vector2f(rand() % 800, rand() % 600)),
+                sf::Vertex(sf::Vector2f(rand() % 800, rand() % 600))
+            };
+            line[0].color = sf::Color::Blue;
+            line[1].color = sf::Color::Blue;
+            window.clear();
+            window.draw(line, 2, sf::Lines);
+            window.display();
+        }
+    }
+
+    void displayResults() {
+        std::cout << "\nBenchmark Results:" << std::endl;
+        for (const auto& result : results) {
+            std::cout << result.stage_name << ": " << result.duration_ms << " ms" << std::endl;
+        }
+    }
+};
 
 int main() {
-    cout << "Starting 2D Benchmark Program..." << endl;
-    sortingBenchmark();
-    matrixMultiplicationBenchmark();
-    trigonometricBenchmark();
-    randomNumberBenchmark();
-    primeNumberBenchmark();
-
-    cout << "Benchmarking Complete." << endl;
-    cout << "Final Score: " << score << endl;
+    BenchmarkTool tool;
+    tool.run();
     return 0;
-}
+} 
+

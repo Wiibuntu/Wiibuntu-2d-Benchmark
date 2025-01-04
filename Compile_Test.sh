@@ -1,3 +1,3 @@
 #!/bin/bash
-gcc benchmark.cpp -o 2d-benchmark -std=c++17 -fPIC
+g++ benchmark.cpp -o 2d-benchmark -lsfml-graphics -lsfml-window -lsfml-system
 
