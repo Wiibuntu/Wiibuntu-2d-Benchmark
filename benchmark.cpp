@@ -13,9 +13,10 @@ struct BenchmarkResult {
 // Benchmark class
 class BenchmarkTool {
 public:
-    BenchmarkTool() : window(sf::VideoMode(800, 600), "2D Benchmark Tool") {}
+    BenchmarkTool(unsigned int width, unsigned int height) : window_width(width), window_height(height) {}
 
     void run() {
+        window.create(sf::VideoMode(window_width, window_height), "2D Benchmark Tool");
         std::cout << "Starting 2D Graphics Benchmark..." << std::endl;
         
         // Run benchmark stages
@@ -29,6 +30,8 @@ public:
 
 private:
     sf::RenderWindow window;
+    unsigned int window_width;
+    unsigned int window_height;
     std::vector<BenchmarkResult> results;
 
     void runStage(const std::string& name, void (BenchmarkTool::*benchmarkFunc)()) {
@@ -44,7 +47,7 @@ private:
     void benchmarkRectangles() {
         for (int i = 0; i < 10000; ++i) {
             sf::RectangleShape rectangle(sf::Vector2f(50, 50));
-            rectangle.setPosition(rand() % 800, rand() % 600);
+            rectangle.setPosition(rand() % window_width, rand() % window_height);
             rectangle.setFillColor(sf::Color::Red);
             window.clear();
             window.draw(rectangle);
@@ -55,7 +58,7 @@ private:
     void benchmarkCircles() {
         for (int i = 0; i < 10000; ++i) {
             sf::CircleShape circle(25);
-            circle.setPosition(rand() % 800, rand() % 600);
+            circle.setPosition(rand() % window_width, rand() % window_height);
             circle.setFillColor(sf::Color::Green);
             window.clear();
             window.draw(circle);
@@ -66,8 +69,8 @@ private:
     void benchmarkLines() {
         for (int i = 0; i < 10000; ++i) {
             sf::Vertex line[] = {
-                sf::Vertex(sf::Vector2f(rand() % 800, rand() % 600)),
-                sf::Vertex(sf::Vector2f(rand() % 800, rand() % 600))
+                sf::Vertex(sf::Vector2f(rand() % window_width, rand() % window_height)),
+                sf::Vertex(sf::Vector2f(rand() % window_width, rand() % window_height))
             };
             line[0].color = sf::Color::Blue;
             line[1].color = sf::Color::Blue;
@@ -84,10 +87,4 @@ private:
         }
     }
 };
-
-int main() {
-    BenchmarkTool tool;
-    tool.run();
-    return 0;
-} 
 
